@@ -1,7 +1,57 @@
 <script>
 // Função para inicializar o mapa (chamado uma única vez)
 function initMap(mapElementId) {
-  const map = L.map(mapElementId).setView([-20.298157, -40.361637], 14);
+  // const map = L.map(mapElementId).setView([-20.298157, -40.361637], 14);
+
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+
+  var osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "© OpenStreetMap",
+  });
+
+  var osmHOT = L.tileLayer(
+    "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution:
+        "© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France",
+    }
+  );
+
+  var map = L.map(mapElementId, {
+    center: [-20.298157, -40.361637],
+    zoom: 14,
+    layers: [osm],
+  });
+
+  var baseMaps = {
+    OpenStreetMap: osm,
+    "OpenStreetMap.HOT": osmHOT,
+  };
+
+  var layerControl = L.control.layers(baseMaps).addTo(map);
+
+  var openTopoMap = L.tileLayer(
+    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution:
+        "Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)",
+    }
+  );
+
+  layerControl.addBaseLayer(openTopoMap, "OpenTopoMap");
+
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
+  // ***************************************************************************************************
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -12,20 +62,13 @@ function initMap(mapElementId) {
   // Cria um grupo de camadas para os círculos
   const markersGroup = L.layerGroup().addTo(map);
 
-  addMarkerVitoria(map);
+  // Adiciona um marcador com um popup em Vitória
+  // addMarkerVitoria(map);
 
   return { map, markersGroup };
 }
 
 async function addMarkerVitoria(map) {
-  const mediaPM2_5 = await getMediaPM2_5();
-  const mediaTemperature = await getMediaTemperature();
-  const mediaHumidity = await getMediaHumidity();
-  const mediaTypicalParticleSize = await getMediaTypicalParticleSize();
-  const date = await getDate();
-
-  // Adiciona um marcador com um popup em Vitória
-
   var customMarker = L.icon({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     iconSize: [45, 55],
@@ -36,257 +79,52 @@ async function addMarkerVitoria(map) {
     icon: customMarker,
   }).addTo(map);
   markerVitoria.bindPopup(
-    `<b>Date: </b> ${date}<br>
-      <b>pm2_5: </b> ${mediaPM2_5}<br>
-      <b>temperature: </b>${mediaTemperature}<br>
-      <b>humidity: </b>${mediaHumidity}<br>
-      <b>typical_particle_size: </b>${mediaTypicalParticleSize}<br>`
+    `<b>Date: </b> ""<br>
+      <b>pm2_5: </b> ""<br>
+      <b>temperature: </b>""<br>
+      <b>humidity: </b>""<br>
+      <b>typical_particle_size: </b>""<br>`
   );
   // .openPopup();
 }
 
 // Função para atualizar o mapa com novos pontos
-async function updateMap(markersGroup, latitudes, longitudes) {
+async function updateMap(markersGroup, latitudes, longitudes, data) {
   markersGroup.clearLayers();
-
-  // Obter dados adicionais
-  const date = await getDate();
-  const pm2_5 = await getPM2_5();
-  const temperature = await getTemperature();
-  const humidity = await getHumidity();
-  const typicalParticleSize = await getTypicalParticleSize();
-
   // Adiciona novos círculos ao mapa
   for (let i = 0; i < latitudes.length; i++) {
     const circle = L.circle([latitudes[i], longitudes[i]], {
-      color: "red",
-      fillColor: "#f03",
-      fillOpacity: 0.2,
+      color: `${getColor(data.pm2_5[i])}`,
+      fillColor: `${getColor(data.pm2_5[i])}`,
+      fillOpacity: 0.7,
       radius: 50,
     });
     circle.bindPopup(`
-      <b>Data: </b> ${date}<br>
-      <b>pm2_5: </b> ${pm2_5[i]}<br>
-      <b>Temperatura: </b>${temperature[i]}<br>
-      <b>Humidade: </b>${humidity[i]}<br>
-      <b>Tamanho típico da partícula: </b>${typicalParticleSize[i]}<br>
+      <b>Data: </b> ${data.dateSelected[0]}<br>
+      <b>pm2_5: </b> ${data.pm2_5[i]}<br>
+      <b>Temperatura: </b>${data.temperature[i]}<br>
+      <b>Humidade: </b>${data.humidity[i]}<br>
+      <b>Tamanho típico da partícula: </b>${data.typical_particle_size[i]}<br>
     `);
     markersGroup.addLayer(circle);
   }
 }
 
-async function getPM2_5() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-
-    return data.pm2_5;
-  } catch (error) {
-    console.error("Erro ao buscar pm2_5:", error);
+function getColor(value) {
+  if (value < 4) {
+    return "#3ab83a";
+  } else if (value < 8) {
+    return "#c2c200";
+  } else if (value < 12) {
+    return "#ff7e00";
+  } else if (value < 16) {
+    return "#ff0000";
+  } else if (value < 20) {
+    return "#8f3f97";
+  } else {
+    return "#7e0023";
   }
 }
 
-async function getTemperature() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-
-    return data.temperature;
-  } catch (error) {
-    console.error("Erro ao buscar temperature:", error);
-  }
-}
-
-async function getHumidity() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-
-    return data.humidity;
-  } catch (error) {
-    console.error("Erro ao buscar humidity:", error);
-  }
-}
-
-async function getTypicalParticleSize() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-
-    return data.typical_particle_size;
-  } catch (error) {
-    console.error("Erro ao buscar typical_particle_size:", error);
-  }
-}
-
-async function getMediaPM2_5() {
-  let media = 0;
-  let sum = 0;
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-    const pm2_5 = data.pm2_5;
-
-    for (let i = 0; i < pm2_5.length; i++) {
-      sum += Number(pm2_5[i]);
-    }
-    media = (sum / pm2_5.length).toFixed(2);
-    return media;
-  } catch (error) {
-    console.error("Erro ao buscar pm2_5:", error);
-  }
-}
-
-async function getMediaTemperature() {
-  let media = 0;
-  let sum = 0;
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-    const temperature = data.temperature;
-
-    for (let i = 0; i < temperature.length; i++) {
-      sum += Number(temperature[i]);
-    }
-    media = (sum / temperature.length).toFixed(2);
-    return media;
-  } catch (error) {
-    console.error("Erro ao buscar temperature:", error);
-  }
-}
-
-async function getMediaHumidity() {
-  let media = 0;
-  let sum = 0;
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-    const humidity = data.humidity;
-
-    for (let i = 0; i < humidity.length; i++) {
-      sum += Number(humidity[i]);
-    }
-    media = (sum / humidity.length).toFixed(2);
-    return media;
-  } catch (error) {
-    console.error("Erro ao buscar humidity:", error);
-  }
-}
-
-async function getMediaTypicalParticleSize() {
-  let media = 0;
-  let sum = 0;
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-    const typical_particle_size = data.typical_particle_size;
-
-    for (let i = 0; i < typical_particle_size.length; i++) {
-      sum += Number(typical_particle_size[i]);
-    }
-    media = (sum / typical_particle_size.length).toFixed(2);
-    return media;
-  } catch (error) {
-    console.error("Erro ao buscar typical_particle_size:", error);
-  }
-}
-
-async function getDate() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-    const date = data.date;
-    return date[0];
-  } catch (error) {
-    console.error("Erro ao buscar data:", error);
-  }
-}
-
-function selectDates(button, datePicker, initialTime, finalTime) {
-  button.addEventListener("click", () => {
-    const selectedDate = datePicker.value;
-    const selectedInitialTime = initialTime.value;
-    const selectedFinalTime = finalTime.value;
-
-    const intervalHour = [selectedInitialTime, selectedFinalTime];
-
-    // exportDatas(selectedDate, intervalHour);
-    fetchCoordinatesFilter(selectedDate, intervalHour);
-  });
-}
-
-async function exportDatas(selectedDate, intervalHour) {
-  try {
-    const response = await fetch("http://localhost:3000/sensorData", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        date: selectedDate,
-        timeRange: intervalHour,
-      }),
-    });
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Erro ao buscar data:", error);
-  }
-}
-
-async function fetchCoordinates() {
-  try {
-    const response = await fetch("http://localhost:3000/updateData");
-    const data = await response.json();
-
-    if (data.latitudes.length === data.longitudes.length) {
-      const negativeLatitudes = data.latitudes.map((lat) => -Math.abs(lat));
-      const negativeLongitudes = data.longitudes.map((long) => -Math.abs(long));
-
-      return { latitudes: negativeLatitudes, longitudes: negativeLongitudes };
-    } else {
-      console.error("Latitudes and longitudes arrays have different lengths.");
-    }
-  } catch (error) {
-    console.error("Erro ao buscar coordenadas:", error);
-  }
-}
-
-async function fetchCoordinatesFilter(selectedDate, intervalHour) {
-  try {
-    const response = await fetch("http://localhost:3000/sensorData", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        date: selectedDate,
-        timeRange: intervalHour,
-      }),
-    });
-
-    const data = await response.json();
-    console.log(data);
-
-    if (data.latitudes.length === data.longitudes.length) {
-      const negativeLatitudes = data.latitudes.map((lat) => -Math.abs(lat));
-      const negativeLongitudes = data.longitudes.map((long) => -Math.abs(long));
-
-      return { latitudes: negativeLatitudes, longitudes: negativeLongitudes };
-    } else {
-      console.error("Latitudes and longitudes arrays have different lengths.");
-    }
-  } catch (error) {
-    console.error("Erro ao buscar coordenadas:", error);
-  }
-}
-
-export {
-  initMap,
-  updateMap,
-  exportDatas,
-  selectDates,
-  fetchCoordinates,
-  fetchCoordinatesFilter,
-};
+export { initMap, updateMap };
 </script>

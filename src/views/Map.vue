@@ -1,20 +1,33 @@
 <template>
   <header>
-    <!-- <h1>Header</h1> -->
     <nav>
       <ul>
         <div>
           Selecione a data
-          <input type="date" value="2024-10-03" id="datePicker" />
+          <InputComponent type="date" :value="currentDate" id="datePicker" />
         </div>
         <div>
           Hora Inicial
-          <input type="time" value="00:00:00" id="initialTime" step="1" />
+          <InputComponent
+            type="time"
+            value="00:00:00"
+            id="initialTime"
+            step="1"
+          />
           Hora Final
-          <input type="time" value="23:59:59" id="finalTime" step="1" />
+          <InputComponent
+            type="time"
+            value="20:59:59"
+            id="finalTime"
+            step="1"
+          />
         </div>
         <div>
-          <button id="btn-submit">Confirmar</button>
+          <ButtonComponent
+            id="btn-submit"
+            text="Confirmar"
+            @click="updateFilterMap"
+          />
         </div>
       </ul>
     </nav>
@@ -22,88 +35,30 @@
   <div id="map"></div>
 </template>
 
-<!-- <script>
-import {
-  initMap,
-  updateMap,
-  fetchCoordinates,
-  selectDates,
-  fetchCoordinatesFilter,
-} from "@/utilities/Utilities.vue";
-
-export default {
-  data() {
-    return {
-      map: null,
-      markersGroup: null,
-    };
-  },
-  methods: {
-    async fetchCoordinatesAndUpdateMap() {
-      try {
-        const { latitudes, longitudes } = await fetchCoordinates();
-        updateMap(this.markersGroup, latitudes, longitudes);
-      } catch (error) {
-        console.error("Erro ao atualizar o mapa:", error);
-      }
-    },
-    async fetchCoordinatesAndUpdateMap2() {
-      try {
-        const { latitudes, longitudes } = await fetchCoordinatesFilter();
-        updateMap(this.markersGroup, latitudes, longitudes);
-      } catch (error) {
-        console.error("Erro ao atualizar o mapa:", error);
-      }
-    },
-  },
-
-  //Chama initMap para inicializar o mapa quando o componente é montado.
-  mounted() {
-    selectDates(
-      document.getElementById("btn-submit"),
-      document.getElementById("datePicker"),
-      document.getElementById("initialTime"),
-      document.getElementById("finalTime")
-    );
-    const { map, markersGroup } = initMap("map");
-    this.map = map;
-    this.markersGroup = markersGroup;
-    this.fetchCoordinatesAndUpdateMap();
-
-    //Configura um intervalo para atualizar as coordenadas a cada 5 segundos.
-    setInterval(() => this.fetchCoordinatesAndUpdateMap(), 5000);
-  },
-};
-</script> -->
-
 <script>
 import { initMap, updateMap } from "@/utilities/Utilities.vue";
-import axios from "axios";
+import ButtonComponent from "@/components/Button.vue";
+import InputComponent from "@/components/Inputs.vue";
 
 export default {
+  components: {
+    ButtonComponent,
+    InputComponent,
+  },
   data() {
     return {
       map: null,
       markersGroup: null,
+      currentDate: this.getCurrentDate(),
     };
   },
   methods: {
-    async fetchCoordinates() {
-      try {
-        const response = await axios.get("http://localhost:3000/updateData");
-        const data = response.data;
-
-        if (data.latitudes.length === data.longitudes.length) {
-          const negativeLatitudes = data.latitudes.map((lat) => -Math.abs(lat));
-          const negativeLongitudes = data.longitudes.map(
-            (long) => -Math.abs(long)
-          );
-
-          updateMap(this.markersGroup, negativeLatitudes, negativeLongitudes);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar coordenadas:", error);
-      }
+    getCurrentDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     },
     async updateFilterMap() {
       const selectedDate = document.getElementById("datePicker").value;
@@ -115,7 +70,7 @@ export default {
       const finalTimeFixed = this.subtractHours(finalTime, 3);
 
       const intervalHour = [initialTimeFixed, finalTimeFixed];
-      console.log(intervalHour);
+      // console.log(intervalHour);
 
       try {
         const response = await fetch("http://localhost:3000/sensorData", {
@@ -137,7 +92,12 @@ export default {
             (long) => -Math.abs(long)
           );
 
-          updateMap(this.markersGroup, negativeLatitudes, negativeLongitudes);
+          updateMap(
+            this.markersGroup,
+            negativeLatitudes,
+            negativeLongitudes,
+            data
+          );
         } else {
           console.error(
             "Arrays de Latitudes e Longitudes têm tamanhos diferentes."
@@ -148,11 +108,11 @@ export default {
       }
     },
     subtractHours(time, hours) {
-      const [hour, minute, second] = time.split(':').map(Number);
+      const [hour, minute, second] = time.split(":").map(Number);
       const date = new Date();
       date.setHours(hour, minute, second);
       date.setHours(date.getHours() + hours);
-      return date.toTimeString().split(' ')[0];
+      return date.toTimeString().split(" ")[0];
     },
   },
   mounted() {
@@ -160,12 +120,9 @@ export default {
     this.map = map;
     this.markersGroup = markersGroup;
 
-    const button = document.getElementById("btn-submit");
-    button.addEventListener("click", this.updateFilterMap);
-
-    this.fetchCoordinates();
+    this.updateFilterMap();
     // Atualiza o mapa a cada 5 segundos
-    // setInterval(this.fetchCoordinates, 5000);
+    // setInterval(this.updateFilterMap, 5000);
   },
 };
 </script>

@@ -127,7 +127,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 header {
   background-color: #0b7425;
   color: rgb(255, 255, 255);

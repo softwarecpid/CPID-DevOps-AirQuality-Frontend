@@ -1,11 +1,12 @@
 <template>
   <div id="app">
-    <Map />
+    <RouterView />
   </div>
 </template>
 
 <script>
 import Map from './views/Map.vue';
+import {RouterView} from 'vue-router'
 
 export default {
   components: {

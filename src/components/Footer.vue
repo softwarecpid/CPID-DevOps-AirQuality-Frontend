@@ -15,9 +15,10 @@ div{
     align-items: center;
     position: absolute;
     width: 100vw;
-    bottom: 0px;
+    bottom: 0;
     background-color: #201547;
     text-align: center;
+    height: 3vh;
 }
 
 span{

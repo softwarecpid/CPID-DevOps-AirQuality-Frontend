@@ -1,55 +1,77 @@
 <template>
   <div>
     <div class="container">
-      <div class="header-home"><HeaderHome /></div>
-      <div class="button"><button @click="show()">{{ textButton }}</button></div>
+      <div class="header-home">
+        <HeaderHome />
+      </div>
+      <div class="button-filter">
+        <button @click="show()">
+          <img
+            src="@/assets/icons/Eye.svg"
+            alt="eye-visible"
+            width="20"
+            height="20"
+          />
+          {{ textButton }}
+        </button>
+      </div>
     </div>
-    
+
     <div class="container-header">
-    <header v-if="showHeader">
-    <nav>
-      <ul>
-        <div>
-          Selecione a data
-          <InputComponent type="date" :value="currentDate" id="datePicker" />
-        </div>
-        <div>
-          Hora Inicial
-          <InputComponent
-            type="time"
-            value="00:00:00"
-            id="initialTime"
-            step="1"
-          />
-        </div>
-        <div>
-          Hora Final
-          <InputComponent
-            type="time"
-            value="20:59:59"
-            id="finalTime"
-            step="1"
-          />
-        </div>
-        
-        <div>
-          <ButtonComponent
-            id="btn-submit"
-            text="Confirmar"
-            @click="updateFilterMap"
-          />
-        </div>
-      </ul>
-    </nav>
-    <div>
-    </div>
-  </header>
+      <header v-if="showHeader">
+        <nav>
+          <ul>
+            <div>
+              Selecione a data
+              <InputComponent
+                type="date"
+                :value="currentDate"
+                id="datePicker"
+              />
+            </div>
+            <div>
+              Hora Inicial
+              <InputComponent
+                type="time"
+                value="00:00:00"
+                id="initialTime"
+                step="1"
+              />
+            </div>
+            <div>
+              Hora Final
+              <InputComponent
+                type="time"
+                value="20:59:59"
+                id="finalTime"
+                step="1"
+              />
+            </div>
 
+            <div>
+              <ButtonComponent
+                id="btn-submit"
+                text="Confirmar"
+                @click="updateFilterMap"
+              />
+            </div>
+          </ul>
+        </nav>
+        <div></div>
+      </header>
     </div>
-  <div id="map"></div>
-  <AqiLegend class="legend" />
+    <div id="map"></div>
+    <button @click="toogleLegend()" id="btn-legend">
+      <img
+        src="@/assets/icons/Eye.svg"
+        alt="eye-visible"
+        width="20"
+        height="20"
+      />
+    </button>
+    <AqiLegend class="legend" v-if="showLegend" />
+    <Footer />
   </div>
-
 </template>
 
 <script>
@@ -57,15 +79,16 @@ import { initMap, updateMap } from "@/utilities/Utilities.vue";
 import ButtonComponent from "@/components/Button.vue";
 import InputComponent from "@/components/Inputs.vue";
 import AqiLegend from "@/components/AqiLegend.vue";
-import HeaderHome from "../components/HeaderHome.vue"
-
+import HeaderHome from "../components/HeaderHome.vue";
+import Footer from "../components/Footer.vue";
 
 export default {
   components: {
     ButtonComponent,
     InputComponent,
     AqiLegend,
-    HeaderHome
+    HeaderHome,
+    Footer,
   },
   data() {
     return {
@@ -73,7 +96,8 @@ export default {
       markersGroup: null,
       currentDate: this.getCurrentDate(),
       showHeader: true,
-      textButton: 'Esconder Filtro',
+      showLegend: true,
+      textButton: "Esconder Filtro",
     };
   },
   methods: {
@@ -120,16 +144,22 @@ export default {
       date.setHours(date.getHours() + hours);
       return date.toTimeString().split(" ")[0];
     },
-    show(){
-    if(this.showHeader === false){
-      this.textButton = "Esconder Filtro"
-      this.showHeader = true;
-    }
-    else{
-      this.textButton = "Mostrar Filtro";
-      this.showHeader = false;
-    } 
-  }
+    show() {
+      if (this.showHeader === false) {
+        this.textButton = "Esconder Filtro";
+        this.showHeader = true;
+      } else {
+        this.textButton = "Mostrar Filtro";
+        this.showHeader = false;
+      }
+    },
+    toogleLegend() {
+      if (this.showLegend === false) {
+        this.showLegend = true;
+      } else {
+        this.showLegend = false;
+      }
+    },
   },
   mounted() {
     const { map, markersGroup } = initMap("map");
@@ -140,34 +170,34 @@ export default {
     // Atualiza o mapa a cada 5 segundos
     // setInterval(this.updateFilterMap, 5000);
   },
-
- 
 };
 </script>
 
 <style scoped>
-.container{
+.container {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  background-color: #BFBEA0;;
+  background-color: #bfbea0;
 }
 
-.header-home{
+.header-home {
   width: 100%;
 }
 
-.button{
+.button-filter {
   position: absolute;
-  right: 20px;
-  top: 35px;
+  right: 30px;
+  top: 20px;
 }
-.container-header{
+.container-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #BFBEA0;
-  
+  background-color: #bfbea0;
+  position: absolute;
+  z-index: 1;
+  width: 100%;
 }
 
 header {
@@ -181,7 +211,6 @@ header {
   gap: 50px;
   align-items: center;
   border-top: solid 1px black;
-
 }
 
 nav ul {
@@ -222,17 +251,22 @@ nav ul div button {
   cursor: pointer;
 }
 
-button{
-  width: 100px;
+.button-filter button {
+  /* width: 100px;*/
   height: 35px;
-  background-color: #000;
-  color: #fff;
-  border: 1px solid #fff;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+  color: #000;
+  border: 1px solid #000;
   border-radius: 4px;
+  cursor: pointer;
 }
 
 #map {
-  height: 92vh;
+  height: 87vh;
   width: 100%;
   position: relative;
   z-index: 0;
@@ -240,8 +274,20 @@ button{
 
 .legend {
   position: absolute;
-  bottom: 2vh;
+  bottom: 5vh;
   right: 0;
   z-index: 1;
+}
+
+#btn-legend {
+  position: absolute;
+  bottom: 32vh;
+  width: 50px;
+  height: 50px;
+  right: 1px;
+  z-index: 2;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
 }
 </style>

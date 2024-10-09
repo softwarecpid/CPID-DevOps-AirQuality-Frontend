@@ -1,0 +1,6 @@
+services:
+    air-quality:
+        build: .
+        image: air-quality:v1.0
+        ports:
+            - 8005:3000

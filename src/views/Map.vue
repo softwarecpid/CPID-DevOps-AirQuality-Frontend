@@ -33,17 +33,20 @@
     </nav>
   </header>
   <div id="map"></div>
+  <AqiLegend class="legend" />
 </template>
 
 <script>
 import { initMap, updateMap } from "@/utilities/Utilities.vue";
 import ButtonComponent from "@/components/Button.vue";
 import InputComponent from "@/components/Inputs.vue";
+import AqiLegend from "@/components/AqiLegend.vue";
 
 export default {
   components: {
     ButtonComponent,
     InputComponent,
+    AqiLegend,
   },
   data() {
     return {
@@ -69,40 +72,22 @@ export default {
       const initialTimeFixed = this.subtractHours(initialTime, 3);
       const finalTimeFixed = this.subtractHours(finalTime, 3);
 
-      const intervalHour = [initialTimeFixed, finalTimeFixed];
+      // const intervalHour = [initialTimeFixed, finalTimeFixed];
       // console.log(intervalHour);
 
       try {
-        const response = await fetch("http://localhost:3000/sensorData", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            date: selectedDate,
-            timeRange: intervalHour,
-          }),
-        });
+        const response = await fetch(
+          `/api/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
+          }
+        );
 
         const data = await response.json();
-
-        if (data.latitudes.length === data.longitudes.length) {
-          const negativeLatitudes = data.latitudes.map((lat) => -Math.abs(lat));
-          const negativeLongitudes = data.longitudes.map(
-            (long) => -Math.abs(long)
-          );
-
-          updateMap(
-            this.markersGroup,
-            negativeLatitudes,
-            negativeLongitudes,
-            data
-          );
-        } else {
-          console.error(
-            "Arrays de Latitudes e Longitudes têm tamanhos diferentes."
-          );
-        }
+        updateMap(this.markersGroup, selectedDate, data);
       } catch (error) {
         console.error("Erro ao buscar coordenadas:", error);
       }
@@ -129,8 +114,8 @@ export default {
 
 <style scoped>
 header {
-  background-color: #0b7425;
-  color: rgb(255, 255, 255);
+  background-color: #bfbea0;
+  color: rgb(0, 0, 0);
   font-weight: bold;
   padding: 10px;
   text-align: center;
@@ -169,9 +154,9 @@ nav ul div input[type="time"] {
 nav ul div button {
   padding: 5px;
   background-color: #ffffff;
-  color: #0b7425;
+  color: #000000;
   font-weight: bold;
-  border: 1px solid #0b7425;
+  border: 1px solid #bfbea0;
   border-radius: 5px;
   width: 100px;
   height: 35px;
@@ -181,5 +166,14 @@ nav ul div button {
 #map {
   height: 90vh;
   width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+.legend {
+  position: absolute;
+  bottom: 2vh;
+  right: 0;
+  z-index: 1;
 }
 </style>

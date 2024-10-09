@@ -48,6 +48,8 @@
     </div>
   <div id="map"></div>
   <AqiLegend class="legend" />
+  </div>
+
 </template>
 
 <script>
@@ -55,6 +57,7 @@ import { initMap, updateMap } from "@/utilities/Utilities.vue";
 import ButtonComponent from "@/components/Button.vue";
 import InputComponent from "@/components/Inputs.vue";
 import AqiLegend from "@/components/AqiLegend.vue";
+import HeaderHome from "../components/HeaderHome.vue"
 
 
 export default {
@@ -62,6 +65,7 @@ export default {
     ButtonComponent,
     InputComponent,
     AqiLegend,
+    HeaderHome
   },
   data() {
     return {

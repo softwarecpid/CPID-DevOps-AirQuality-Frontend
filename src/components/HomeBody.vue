@@ -1,9 +1,12 @@
 <script>
-import HeaderHome from './HeaderHome.vue'
+import HeaderHome from './HeaderHome.vue';
+import Footer from './Footer.vue';
+
 export default{
     name: "HomeBody",
     components:{
-        HeaderHome
+        HeaderHome,
+        Footer
     }
 }
 </script>
@@ -12,7 +15,9 @@ export default{
     <div id="bg-image">
         <HeaderHome />
         <div id="footer"><div class="text-footer"><h1>AirQuality</h1></div></div>
+        <Footer />
     </div>
+    
 </template>
 
 <style scoped>
@@ -30,7 +35,7 @@ export default{
 
     #footer{
         width: 100%;
-        height: 15%;
+        height: 150px;
         position: absolute;
         bottom: 0;
     }
@@ -39,13 +44,13 @@ export default{
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-left: 300px;
+        margin-left: 500px;
     }
 
     .text-footer > h1 {
         font-family: 'Poppins';
         color: #fff;
-        font-size: 60px;
+        font-size: 80px;
     }
 
 </style>

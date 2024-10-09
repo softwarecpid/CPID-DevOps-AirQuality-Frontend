@@ -1,5 +1,12 @@
 <template>
-  <header>
+  <div>
+    <div class="container">
+      <div class="header-home"><HeaderHome /></div>
+      <div class="button"><button @click="show()">{{ textButton }}</button></div>
+    </div>
+    
+    <div class="container-header">
+    <header v-if="showHeader">
     <nav>
       <ul>
         <div>
@@ -14,6 +21,8 @@
             id="initialTime"
             step="1"
           />
+        </div>
+        <div>
           Hora Final
           <InputComponent
             type="time"
@@ -22,6 +31,7 @@
             step="1"
           />
         </div>
+        
         <div>
           <ButtonComponent
             id="btn-submit"
@@ -31,7 +41,11 @@
         </div>
       </ul>
     </nav>
+    <div>
+    </div>
   </header>
+
+    </div>
   <div id="map"></div>
   <AqiLegend class="legend" />
 </template>
@@ -41,6 +55,7 @@ import { initMap, updateMap } from "@/utilities/Utilities.vue";
 import ButtonComponent from "@/components/Button.vue";
 import InputComponent from "@/components/Inputs.vue";
 import AqiLegend from "@/components/AqiLegend.vue";
+
 
 export default {
   components: {
@@ -53,6 +68,8 @@ export default {
       map: null,
       markersGroup: null,
       currentDate: this.getCurrentDate(),
+      showHeader: true,
+      textButton: 'Esconder Filtro',
     };
   },
   methods: {
@@ -99,6 +116,16 @@ export default {
       date.setHours(date.getHours() + hours);
       return date.toTimeString().split(" ")[0];
     },
+    show(){
+    if(this.showHeader === false){
+      this.textButton = "Esconder Filtro"
+      this.showHeader = true;
+    }
+    else{
+      this.textButton = "Mostrar Filtro";
+      this.showHeader = false;
+    } 
+  }
   },
   mounted() {
     const { map, markersGroup } = initMap("map");
@@ -109,27 +136,55 @@ export default {
     // Atualiza o mapa a cada 5 segundos
     // setInterval(this.updateFilterMap, 5000);
   },
+
+ 
 };
 </script>
 
 <style scoped>
+.container{
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  background-color: #BFBEA0;;
+}
+
+.header-home{
+  width: 100%;
+}
+
+.button{
+  position: absolute;
+  right: 20px;
+  top: 35px;
+}
+.container-header{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #BFBEA0;
+  
+}
+
 header {
   background-color: #bfbea0;
   color: rgb(0, 0, 0);
   font-weight: bold;
   padding: 10px;
   text-align: center;
-  height: 10vh;
   display: flex;
   justify-content: center;
   gap: 50px;
   align-items: center;
+  border-top: solid 1px black;
+
 }
 
 nav ul {
   display: flex;
   justify-content: center;
-  gap: 50px;
+  align-items: center;
+  gap: 60px;
   list-style: none;
   padding: 0;
 }
@@ -163,8 +218,17 @@ nav ul div button {
   cursor: pointer;
 }
 
+button{
+  width: 100px;
+  height: 35px;
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 4px;
+}
+
 #map {
-  height: 90vh;
+  height: 92vh;
   width: 100%;
   position: relative;
   z-index: 0;

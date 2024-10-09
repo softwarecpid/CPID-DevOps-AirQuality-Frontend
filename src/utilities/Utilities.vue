@@ -1,13 +1,7 @@
 <script>
 // Função para inicializar o mapa (chamado uma única vez)
 function initMap(mapElementId) {
-  // const map = L.map(mapElementId).setView([-20.298157, -40.361637], 14);
-
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
+  //adiciona o mapa e as camadas de base
 
   var osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -47,12 +41,6 @@ function initMap(mapElementId) {
 
   layerControl.addBaseLayer(openTopoMap, "OpenTopoMap");
 
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-  // ***************************************************************************************************
-
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution:
@@ -62,67 +50,92 @@ function initMap(mapElementId) {
   // Cria um grupo de camadas para os círculos
   const markersGroup = L.layerGroup().addTo(map);
 
-  // Adiciona um marcador com um popup em Vitória
-  // addMarkerVitoria(map);
-
   return { map, markersGroup };
 }
 
-async function addMarkerVitoria(map) {
-  var customMarker = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    iconSize: [45, 55],
-    iconAnchor: [20, 0],
-  });
-
-  var markerVitoria = L.marker([-20.29959657901295, -40.319646932035944], {
-    icon: customMarker,
-  }).addTo(map);
-  markerVitoria.bindPopup(
-    `<b>Date: </b> ""<br>
-      <b>pm2_5: </b> ""<br>
-      <b>temperature: </b>""<br>
-      <b>humidity: </b>""<br>
-      <b>typical_particle_size: </b>""<br>`
-  );
-  // .openPopup();
-}
-
 // Função para atualizar o mapa com novos pontos
-async function updateMap(markersGroup, latitudes, longitudes, data) {
+async function updateMap(markersGroup, selectedDate, data) {
   markersGroup.clearLayers();
   // Adiciona novos círculos ao mapa
-  for (let i = 0; i < latitudes.length; i++) {
-    const circle = L.circle([latitudes[i], longitudes[i]], {
-      color: `${getColor(data.pm2_5[i])}`,
-      fillColor: `${getColor(data.pm2_5[i])}`,
+  for (let i = 0; i < data.length; i++) {
+    // console.log(data[i].latitude, data[i].longitude);
+    let negativeLatitude = -Math.abs(data[i].latitude);
+    let negativeLongitude = -Math.abs(data[i].longitude);
+    const circle = L.circle([negativeLatitude, negativeLongitude], {
+      color: `${getColor(data[i].aqi[1])}`,
+      fillColor: `${getColor(data[i].aqi[1])}`,
       fillOpacity: 0.7,
       radius: 50,
     });
+    // circle.bindPopup(`
+    //   <b>Data: </b> ${selectedDate}<br>
+    //   <b>Horário: </b> ${data[0].time}<br>
+    //   <b>PM 2.5: </b> ${data[i].pm2_5}<br>
+    //   <b>Temperatura: </b>${data[i].temperature}<br>
+    //   <b>Humidade: </b>${data[i].humidity}<br>
+    //   <b>Tamanho típico da partícula: </b>${data[i].typical_particle_size}<br>
+    //   <b>Dispositivo de coleta: </b>${data[i].uid}<br>
+    // `);
     circle.bindPopup(`
-      <b>Data: </b> ${data.dateSelected[0]}<br>
-      <b>pm2_5: </b> ${data.pm2_5[i]}<br>
-      <b>Temperatura: </b>${data.temperature[i]}<br>
-      <b>Humidade: </b>${data.humidity[i]}<br>
-      <b>Tamanho típico da partícula: </b>${data.typical_particle_size[i]}<br>
+    <div style="display: flex; flex-direction: column; justify-content: center; gap: 15px;">
+      <div style="display: flex; gap:10px; justify-content: space-between; width:100%;">
+        <div style="display: flex;align-items: center;">
+          <img src="/src/assets/icons/Temperature.svg" alt="temperature icon" width="20" height="20">
+          <b>Temperatura: </b>${data[i].temperature}°C
+        </div>
+        <div style="display: flex;align-items: center; gap: 5px;">
+          <img src="/src/assets/icons/Humidity.svg" alt="temperature icon" width="20" height="20">
+          <b>Humidade: </b>${data[i].humidity}%
+        </div>
+      </div>
+      <div style="display: flex; gap:10px; justify-content: space-between; width:100%">
+        <div style="display: flex; flex-direction: column;">
+          <b>Dispositivo de<br>monitoramento:</b>
+          <span style="display: flex;align-items: center;  gap: 5px;">
+            <img src="/src/assets/icons/Sensor.svg" alt="temperature icon" width="20" height="20">${data[i].uid}
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; text-align: center;">
+          <b>Tamanho típico<br>da partícula:</b>
+          <span style="display: flex; justify-content: end; align-items: center;  gap: 5px;">
+            ${data[i].typical_particle_size}<img src="/src/assets/icons/Particles.svg" alt="temperature icon" width="20" height="20">
+          </span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content: center; width:100%">
+        <div style="padding: 0.5rem; display: flex;align-items: center; gap: 5px;">
+          <img src="/src/assets/icons/ParticulateMatter.svg" width="20" height="20" alt="particulate matter icon">
+          <b>PM 2.5:</b> <span style="font-size: 16px">${data[i].pm2_5} µg/m³</span>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; gap:10px; width:100%;">
+        <div style="border: 1px solid #000; border-radius: 4px; padding: 2px 15px;">
+          <b>${selectedDate}</b>
+        </div>
+        <div style="border: 1px solid #000; border-radius: 4px; padding: 2px 15px;">
+          <b>${data[i].time}</b>
+        </div>
+      </div>
+    </div>
     `);
     markersGroup.addLayer(circle);
   }
 }
 
-function getColor(value) {
-  if (value < 4) {
-    return "#3ab83a";
-  } else if (value < 8) {
-    return "#c2c200";
-  } else if (value < 12) {
-    return "#ff7e00";
-  } else if (value < 16) {
-    return "#ff0000";
-  } else if (value < 20) {
-    return "#8f3f97";
-  } else {
-    return "#7e0023";
+function getColor(aqiQuality) {
+  switch (aqiQuality.toLowerCase()) {
+    case "good":
+      return "#3ab83a";
+    case "moderate":
+      return "#c2c200";
+    case "unhealthy-for-sensitive-groups":
+      return "#ff7e00";
+    case "unhealthy":
+      return "#ff0000";
+    case "very-unhealthy":
+      return "#8f3f97";
+    case "hazardous":
+      return "#7e0023";
   }
 }
 

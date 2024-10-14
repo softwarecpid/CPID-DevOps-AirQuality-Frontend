@@ -1,5 +1,5 @@
 # using the latest node alpine base image
-FROM node:lts-alpine
+FROM node:lts-alpine AS build
 
 # define the working directory as 'app'
 WORKDIR /app
@@ -10,15 +10,20 @@ COPY package*.json .
 # install project dependencies
 RUN npm install
 
-# install serve to put the applicatin in web
-RUN npm i -g serve
-
 # copy all project files to the working directory (i.e. 'app')
 COPY . .
 
 # create a production build of the application
 RUN npm run build
 
-# expose the port that the application should be running and serve it
-EXPOSE 3000
-CMD ["serve", "-s", "dist"]
+# use an light image to serve the application
+FROM nginx:alpine
+
+# copy the nginx necessary files
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# expose the port nginx will use (documentation purposes)
+EXPOSE 80
+
+# commando to init nginx
+CMD ["nginx", "-g", "daemon off;"]

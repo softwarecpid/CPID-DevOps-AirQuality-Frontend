@@ -122,13 +122,13 @@ export default {
 
       try {
         const response = await fetch(
-          `/api/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
+          `http://193.203.174.19:8003/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
           {
             method: "GET",
             headers: {
               accept: "application/json",
             },
-          }
+          },
         );
 
         const data = await response.json();

@@ -1,55 +1,103 @@
 <template>
-  <header>
-    <nav>
-      <ul>
-        <div>
-          Selecione a data
-          <InputComponent type="date" :value="currentDate" id="datePicker" />
-        </div>
-        <div>
-          Hora Inicial
-          <InputComponent
-            type="time"
-            value="00:00:00"
-            id="initialTime"
-            step="1"
+  <div>
+    <div class="container">
+      <div class="header-home">
+        <HeaderHome />
+      </div>
+      <div class="button-filter">
+        <button @click="show()">
+          <img
+            src="@/assets/icons/Eye.svg"
+            alt="eye-visible"
+            width="20"
+            height="20"
           />
-          Hora Final
-          <InputComponent
-            type="time"
-            value="20:59:59"
-            id="finalTime"
-            step="1"
-          />
-        </div>
-        <div>
-          <ButtonComponent
-            id="btn-submit"
-            text="Confirmar"
-            @click="updateFilterMap"
-          />
-        </div>
-      </ul>
-    </nav>
-  </header>
-  <div id="map"></div>
+          {{ textButton }}
+        </button>
+      </div>
+    </div>
+
+    <div class="container-header">
+      <header v-if="showHeader">
+        <nav>
+          <ul>
+            <div>
+              Selecione a data
+              <InputComponent
+                type="date"
+                :value="currentDate"
+                id="datePicker"
+              />
+            </div>
+            <div>
+              Hora Inicial
+              <InputComponent
+                type="time"
+                value="00:00:00"
+                id="initialTime"
+                step="1"
+              />
+            </div>
+            <div>
+              Hora Final
+              <InputComponent
+                type="time"
+                value="20:59:59"
+                id="finalTime"
+                step="1"
+              />
+            </div>
+
+            <div>
+              <ButtonComponent
+                id="btn-submit"
+                text="Confirmar"
+                @click="updateFilterMap"
+              />
+            </div>
+          </ul>
+        </nav>
+        <div></div>
+      </header>
+    </div>
+    <div id="map"></div>
+    <button @click="toogleLegend()" id="btn-legend">
+      <img
+        src="@/assets/icons/Eye.svg"
+        alt="eye-visible"
+        width="20"
+        height="20"
+      />
+    </button>
+    <AqiLegend class="legend" v-if="showLegend" />
+    <Footer />
+  </div>
 </template>
 
 <script>
 import { initMap, updateMap } from "@/utilities/Utilities.vue";
 import ButtonComponent from "@/components/Button.vue";
 import InputComponent from "@/components/Inputs.vue";
+import AqiLegend from "@/components/AqiLegend.vue";
+import HeaderHome from "../components/HeaderHome.vue";
+import Footer from "../components/Footer.vue";
 
 export default {
   components: {
     ButtonComponent,
     InputComponent,
+    AqiLegend,
+    HeaderHome,
+    Footer,
   },
   data() {
     return {
       map: null,
       markersGroup: null,
       currentDate: this.getCurrentDate(),
+      showHeader: true,
+      showLegend: true,
+      textButton: "Esconder Filtro",
     };
   },
   methods: {
@@ -69,40 +117,22 @@ export default {
       const initialTimeFixed = this.subtractHours(initialTime, 3);
       const finalTimeFixed = this.subtractHours(finalTime, 3);
 
-      const intervalHour = [initialTimeFixed, finalTimeFixed];
+      // const intervalHour = [initialTimeFixed, finalTimeFixed];
       // console.log(intervalHour);
 
       try {
-        const response = await fetch("http://localhost:3000/sensorData", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `http://193.203.174.19:8003/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+            },
           },
-          body: JSON.stringify({
-            date: selectedDate,
-            timeRange: intervalHour,
-          }),
-        });
+        );
 
         const data = await response.json();
-
-        if (data.latitudes.length === data.longitudes.length) {
-          const negativeLatitudes = data.latitudes.map((lat) => -Math.abs(lat));
-          const negativeLongitudes = data.longitudes.map(
-            (long) => -Math.abs(long)
-          );
-
-          updateMap(
-            this.markersGroup,
-            negativeLatitudes,
-            negativeLongitudes,
-            data
-          );
-        } else {
-          console.error(
-            "Arrays de Latitudes e Longitudes têm tamanhos diferentes."
-          );
-        }
+        updateMap(this.markersGroup, selectedDate, data);
       } catch (error) {
         console.error("Erro ao buscar coordenadas:", error);
       }
@@ -113,6 +143,22 @@ export default {
       date.setHours(hour, minute, second);
       date.setHours(date.getHours() + hours);
       return date.toTimeString().split(" ")[0];
+    },
+    show() {
+      if (this.showHeader === false) {
+        this.textButton = "Esconder Filtro";
+        this.showHeader = true;
+      } else {
+        this.textButton = "Mostrar Filtro";
+        this.showHeader = false;
+      }
+    },
+    toogleLegend() {
+      if (this.showLegend === false) {
+        this.showLegend = true;
+      } else {
+        this.showLegend = false;
+      }
     },
   },
   mounted() {
@@ -128,23 +174,50 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  background-color: #bfbea0;
+}
+
+.header-home {
+  width: 100%;
+}
+
+.button-filter {
+  position: absolute;
+  right: 30px;
+  top: 20px;
+}
+.container-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #bfbea0;
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+}
+
 header {
-  background-color: #0b7425;
-  color: rgb(255, 255, 255);
+  background-color: #bfbea0;
+  color: rgb(0, 0, 0);
   font-weight: bold;
   padding: 10px;
   text-align: center;
-  height: 10vh;
   display: flex;
   justify-content: center;
   gap: 50px;
   align-items: center;
+  border-top: solid 1px black;
 }
 
 nav ul {
   display: flex;
   justify-content: center;
-  gap: 50px;
+  align-items: center;
+  gap: 60px;
   list-style: none;
   padding: 0;
 }
@@ -169,17 +242,52 @@ nav ul div input[type="time"] {
 nav ul div button {
   padding: 5px;
   background-color: #ffffff;
-  color: #0b7425;
+  color: #000000;
   font-weight: bold;
-  border: 1px solid #0b7425;
+  border: 1px solid #bfbea0;
   border-radius: 5px;
   width: 100px;
   height: 35px;
   cursor: pointer;
 }
 
+.button-filter button {
+  /* width: 100px;*/
+  height: 35px;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 #map {
-  height: 90vh;
+  height: 87vh;
   width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+.legend {
+  position: absolute;
+  bottom: 5vh;
+  right: 0;
+  z-index: 1;
+}
+
+#btn-legend {
+  position: absolute;
+  bottom: 32vh;
+  width: 50px;
+  height: 50px;
+  right: 1px;
+  z-index: 2;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
 }
 </style>

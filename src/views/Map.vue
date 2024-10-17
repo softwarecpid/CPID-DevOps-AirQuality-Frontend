@@ -122,7 +122,7 @@ export default {
 
       try {
         const response = await fetch(
-          `http://193.203.174.19:8003/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
+          `http://localhost:8000/internal/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
           {
             method: "GET",
             headers: {

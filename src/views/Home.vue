@@ -1,16 +1,15 @@
 <template>
-    <div>
-        <HomeBody />
-    </div>
+  <div>
+    <HomeBody />
+  </div>
 </template>
 <script>
-import HomeBody from '../components/HomeBody.vue'
+import HomeBody from "../components/HomeBody.vue";
 
-
-    export default{
-        components: {
-            HomeBody,
-        
-        }
-    }
+export default {
+  components: {
+    HomeBody,
+  },
+};
 </script>
+

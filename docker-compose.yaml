@@ -1,7 +1,13 @@
 services:
-    air-quality:
-        build: .
-        image: air-quality:v1.0
-        container_name: air-quality-frontend
-        ports:
-          - 8080:80
+  air-quality:
+    build: .
+    image: air-quality:v1.0
+    container_name: air-quality-frontend
+    ports:
+      - 8080:80 
+    networks:
+        - kong-network
+
+networks:
+  kong-network:
+    external: true

@@ -120,16 +120,19 @@ export default {
       // const intervalHour = [initialTimeFixed, finalTimeFixed];
       // console.log(intervalHour);
 
+      const hostname = "193.203.174.19";
+
+      const query = `?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`;
+
+      const url = `http://${hostname}:8000/internal/sensorData/${query}`;
+
       try {
-        const response = await fetch(
-          `http://localhost:8000/internal/sensorData/?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`,
-          {
-            method: "GET",
-            headers: {
-              accept: "application/json",
-            },
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            accept: "application/json",
           },
-        );
+        });
 
         const data = await response.json();
         updateMap(this.markersGroup, selectedDate, data);

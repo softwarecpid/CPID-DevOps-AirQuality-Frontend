@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # create a production build of the application
-CMD ["npm", "run", "dev"]
+RUN npm run build
 
 # use an light image to serve the application
 FROM nginx:alpine

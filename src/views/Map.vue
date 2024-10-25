@@ -98,6 +98,7 @@ export default {
       showHeader: true,
       showLegend: true,
       textButton: "Esconder Filtro",
+      tempIcon: "../assets/icons/Temperature.svg",
     };
   },
   methods: {
@@ -120,11 +121,11 @@ export default {
       // const intervalHour = [initialTimeFixed, finalTimeFixed];
       // console.log(intervalHour);
 
-      const hostname = "193.203.174.19";
+      const hostname = "elenalab-kong.online";
 
       const query = `?date_reference=${selectedDate}&start_time=${initialTimeFixed}&end_time=${finalTimeFixed}`;
 
-      const url = `http://${hostname}:8000/internal/sensorData/${query}`;
+      const url = `https://${hostname}/internal/sensorData/${query}`;
 
       try {
         const response = await fetch(url, {
